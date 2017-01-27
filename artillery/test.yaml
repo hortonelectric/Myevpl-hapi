@@ -1,0 +1,26 @@
+config:
+  target: 'http://localhost:8000'
+  phases:
+    - duration: 5
+      arrivalRate: 3
+  processor: "./custom.js"
+  variables:
+    username:
+      - "user"
+    name:
+      - "user"
+    email:
+      - "user@email.com"
+    password:
+      - "password"
+scenarios:
+  - flow:
+    - post:
+        url: "/api/signup"
+        beforeRequest: "setUsername"
+        json:
+          username: "{{ username }}"
+          name:     "{{ name }}"
+          email:    "{{ email }}"
+          password: "{{ password }}"
+

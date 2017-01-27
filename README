@@ -1,0 +1,24 @@
+## There will be plenty of errors in these below steps that you'll have to solve
+## install a few linux libs first, so you can compile some of this
+### ZeroMQ, for bitcore-node (please refer to this page: http://zeromq.org/distro:debian before installing to make sure you are getting the latest version)
+```
+deb http://httpredir.debian.org/debian/ experimental main contrib non-free
+deb-src http://httpredir.debian.org/debian/ experimental main contrib non-free
+apt-get update
+apt-get install libzmq5-dev
+```
+### compilers and make tools
+```
+apt-get install g++ gcc libtool pkg-config build-essential autoconf make
+```
+## install these node libraries IN ORDER AS WRITTEN
+`npm install mongodb`
+`npm install hapi`
+`npm install bcrypt`
+`npm install bitcore-node`
+## now install the rest of the stuff from package.json
+`npm install`
+## set up an admin user
+`npm setup`
+## start the server
+`npm start`
