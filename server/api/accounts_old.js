@@ -64,166 +64,163 @@ internals.applyRoutes = function (server, next) {
     };
 
 
+    // server.route({
+    //     method: 'GET',
+    //     path: '/check-deposit',
+    //     config: {
+    //         auth: {
+    //             strategy: 'simple',
+    //             scope: 'account'
+    //         },
+    //         pre :[{
+    //             method: getAccount,
+    //             assign: 'account'
+    //         }]
+    //     },
+    //     handler: function(request,reply) {
+    //         Async.auto({
+    //             bitcoin: function (done) {
+    //
+    //                 Account.getDepositAddress(request.pre.account,"bitcoin", (err,result) => {
+    //                     if(err || !result) {
+    //                         console.error(err);
+    //                         return reply(Boom.badRequest('Unable to get bitcoin deposit address'));
+    //                     }
+    //
+    //
+    //
+    //                     Account.findByIdValidateAndUpdate(request.pre.account._id, request.pre.account, done);
+    //
+    //                 });
+    //                 
+    //
+    //             },
+    //             burstcoin: function (done) {
+    //
+    //                 Account.getDepositAddress(request.pre.account,"burstcoin", (err,result) => {
+    //                     if(err || !result) {
+    //                         console.error(err);
+    //                         return reply(Boom.badRequest('Unable to get burstcoin deposit address'));
+    //                     }
+    //
+    //
+    //                     Account.findByIdValidateAndUpdate(request.pre.account._id, request.pre.account, done);
+    //
+    //                 });
+    //             }
+    //         }, (err, results) => {
+    //
+    //             if (err) {
+    //                 return reply(err);
+    //             }
+    //
+    //             return reply(results.burstcoin);
+    //         });            
+    //     }
+    // });
+
+    // server.route({
+    //     method: 'GET',
+    //     path: '/deposit/{currency}',
+    //     config: {
+    //         auth: {
+    //             strategy: 'simple',
+    //             scope: 'account'
+    //         },
+    //         pre :[{
+    //             method: getAccount,
+    //             assign: 'account'
+    //         }]
+    //     },
+    //     handler: function(request,reply) {
+    //
+    //         Account.getDepositAddress(request.pre.account,request.params.currency, (err,result) => {
+    //             if(err || !result) {
+    //                 console.error(err);
+    //                 return reply(Boom.badRequest('Unable to get address'));
+    //             }
+    //             reply({address:result});
+    //         });
+    //     }
+    // });
+
+
+    // server.route({
+    //     method: 'GET',
+    //     path: '/send-chat',
+    //     config: {
+    //         auth: {
+    //             strategy: 'simple',
+    //             scope: 'account'
+    //         },
+    //         pre :[{
+    //             method: getAccount,
+    //             assign: 'account'
+    //         }],            
+    //         plugins: {
+    //             'hapi-io': {
+    //                 event: 'send-chat',
+    //                 post: function(ctx,next) {
+    //                     server.settings.app.chatHistory.push(ctx.data);
+    //                     while(server.settings.app.chatHistory.length >= server.settings.app.game.chatHistoryLength) {
+    //                         server.settings.app.chatHistory.shift();
+    //                     }
+    //                     ctx.io.emit('receive-chat',ctx.data);
+    //                     next();
+    //                 }
+    //             }
+    //         }
+    //     },
+    //     handler: function(request,reply) {
+    //         reply();
+    //     }
+    // });
+
+    // server.route({
+    //     method: 'GET',
+    //     path: '/qrcode/{data}',
+    //     config: {},
+    //       handler: function(request,reply) {
+    //         const data = yaqrcode(request.params.data,{size:250});
+    //         
+    //         function decodeBase64Image(dataString) {
+    //           var matches = dataString.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/),
+    //             response = {};
+    //
+    //           if (matches.length !== 3) {
+    //             return new Error('Invalid input string');
+    //           }
+    //
+    //           response.type = matches[1];
+    //           response.data = new Buffer(matches[2], 'base64');
+    //
+    //           return response;
+    //         }
+    //
+    //         var imageBuffer = decodeBase64Image(data);     
+    //         return reply(imageBuffer.data).type('image/gif');
+    //         ;
+    //       }
+    //     });
+
     server.route({
-        method: 'GET',
-        path: '/check-deposit',
-        config: {
-            auth: {
-                strategy: 'simple',
-                scope: 'account'
-            },
-            pre :[{
-                method: getAccount,
-                assign: 'account'
-            }]
-        },
-        handler: function(request,reply) {
-            Async.auto({
-                bitcoin: function (done) {
-
-                    Account.getDepositAddress(request.pre.account,"bitcoin", (err,result) => {
-                        if(err || !result) {
-                            console.error(err);
-                            return reply(Boom.badRequest('Unable to get bitcoin deposit address'));
-                        }
-
-
-
-                        Account.findByIdValidateAndUpdate(request.pre.account._id, request.pre.account, done);
-
-                    });
-                    
-
-                },
-                burstcoin: function (done) {
-
-                    Account.getDepositAddress(request.pre.account,"burstcoin", (err,result) => {
-                        if(err || !result) {
-                            console.error(err);
-                            return reply(Boom.badRequest('Unable to get burstcoin deposit address'));
-                        }
-
-
-                        Account.findByIdValidateAndUpdate(request.pre.account._id, request.pre.account, done);
-
-                    });
-                }
-            }, (err, results) => {
-
-                if (err) {
-                    return reply(err);
-                }
-
-                return reply(results.burstcoin);
-            });            
-        }
+      method: 'GET',
+      path: '/account',
+      // config: {
+      //     auth: {
+      //         strategy: 'simple',
+      //         scope: 'account'
+      //     },
+      //     pre :[{
+      //         method: getAccount,
+      //         assign: 'account'
+      //     }]
+      //   },
+      handler: function(request,reply) {
+        request.pre.account.game = server.settings.app.game;
+        return reply(request.pre.account);
+      }
     });
-
-    server.route({
-        method: 'GET',
-        path: '/deposit/{currency}',
-        config: {
-            auth: {
-                strategy: 'simple',
-                scope: 'account'
-            },
-            pre :[{
-                method: getAccount,
-                assign: 'account'
-            }]
-        },
-        handler: function(request,reply) {
-
-            Account.getDepositAddress(request.pre.account,request.params.currency, (err,result) => {
-                if(err || !result) {
-                    console.error(err);
-                    return reply(Boom.badRequest('Unable to get address'));
-                }
-                reply({address:result});
-            });
-        }
-    });
-
-
-    server.route({
-        method: 'GET',
-        path: '/send-chat',
-        config: {
-            auth: {
-                strategy: 'simple',
-                scope: 'account'
-            },
-            pre :[{
-                method: getAccount,
-                assign: 'account'
-            }],            
-            plugins: {
-                'hapi-io': {
-                    event: 'send-chat',
-                    post: function(ctx,next) {
-                        server.settings.app.chatHistory.push(ctx.data);
-                        while(server.settings.app.chatHistory.length >= server.settings.app.game.chatHistoryLength) {
-                            server.settings.app.chatHistory.shift();
-                        }
-                        ctx.io.emit('receive-chat',ctx.data);
-                        next();
-                    }
-                }
-            }
-        },
-        handler: function(request,reply) {
-            reply();
-        }
-    });
-
-
-    
-
-    server.route({
-        method: 'GET',
-        path: '/qrcode/{data}',
-        config: {},
-          handler: function(request,reply) {
-            const data = yaqrcode(request.params.data,{size:250});
-            
-            function decodeBase64Image(dataString) {
-              var matches = dataString.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/),
-                response = {};
-
-              if (matches.length !== 3) {
-                return new Error('Invalid input string');
-              }
-
-              response.type = matches[1];
-              response.data = new Buffer(matches[2], 'base64');
-
-              return response;
-            }
-
-            var imageBuffer = decodeBase64Image(data);     
-            return reply(imageBuffer.data).type('image/gif');
-            ;
-          }
-        });
-    
-    server.route({
-        method: 'GET',
-        path: '/account',
-        config: {
-            auth: {
-                strategy: 'simple',
-                scope: 'account'
-            },
-            pre :[{
-                method: getAccount,
-                assign: 'account'
-            }]
-          },
-          handler: function(request,reply) {
-            request.pre.account.game = server.settings.app.game;
-            return reply(request.pre.account);
-          }
-        });
     
 
 

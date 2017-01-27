@@ -1,8 +1,9 @@
 'use strict';
-const Async = require('async');
-const AuthPlugin = require('../auth');
+
 const Boom = require('boom');
+const Async = require('async');
 const Joi = require('joi');
+const AuthPlugin = require('../auth');
 
 
 const internals = {};
@@ -126,9 +127,6 @@ internals.applyRoutes = function (server, next) {
                 scope: 'admin'
             },
             validate: {
-                params: {
-                    id: Joi.string().invalid('111111111111111111111111')
-                },
                 payload: {
                     name: Joi.object().keys({
                         first: Joi.string().required(),
@@ -175,9 +173,6 @@ internals.applyRoutes = function (server, next) {
                 scope: 'admin'
             },
             validate: {
-                params: {
-                    id: Joi.string().invalid('111111111111111111111111')
-                },
                 payload: {
                     permissions: Joi.object().required()
                 }
@@ -216,9 +211,6 @@ internals.applyRoutes = function (server, next) {
                 scope: 'admin'
             },
             validate: {
-                params: {
-                    id: Joi.string().invalid('111111111111111111111111')
-                },
                 payload: {
                     groups: Joi.object().required()
                 }
@@ -257,9 +249,6 @@ internals.applyRoutes = function (server, next) {
                 scope: 'admin'
             },
             validate: {
-                params: {
-                    id: Joi.string().invalid('111111111111111111111111')
-                },
                 payload: {
                     username: Joi.string().lowercase().required()
                 }
@@ -332,7 +321,8 @@ internals.applyRoutes = function (server, next) {
                         $set: {
                             user: {
                                 id: request.pre.user._id.toString(),
-                                name: request.pre.user.username
+                                name: request.pre.user.username,
+                                email: request.pre.user.email
                             }
                         }
                     };
@@ -372,11 +362,6 @@ internals.applyRoutes = function (server, next) {
             auth: {
                 strategy: 'simple',
                 scope: 'admin'
-            },
-            validate: {
-                params: {
-                    id: Joi.string().invalid('111111111111111111111111')
-                }
             },
             pre: [
                 AuthPlugin.preware.ensureAdminGroup('root'),
@@ -488,6 +473,34 @@ internals.applyRoutes = function (server, next) {
         }
     });
 
+
+    server.route({
+        method: 'GET',
+        path: '/admins/my',
+        config: {
+            auth: {
+                strategy: 'simple',
+                scope: 'admin'
+            }
+        },
+        handler: function (request, reply) {
+
+            const id = request.auth.credentials.roles.admin._id.toString();
+
+            Admin.findById(id, (err, account) => {
+
+                if (err) {
+                    return reply(err);
+                }
+
+                if (!account) {
+                    return reply(Boom.notFound('Document not found. That is strange.'));
+                }
+
+                reply(account);
+            });
+        }
+    });
 
     next();
 };

@@ -1,7 +1,8 @@
 'use strict';
-const AuthPlugin = require('../auth');
+
 const Boom = require('boom');
 const Joi = require('joi');
+const AuthPlugin = require('../auth');
 
 
 const internals = {};
@@ -106,7 +107,7 @@ internals.applyRoutes = function (server, next) {
         handler: function (request, reply) {
 
             const id = request.auth.credentials.user._id.toString();
-            const fields = User.fieldsAdapter('username email roles');
+            const fields = User.fieldsAdapter('username email roles burstcoin');
 
             User.findById(id, fields, (err, user) => {
 
@@ -192,7 +193,7 @@ internals.applyRoutes = function (server, next) {
             const password = request.payload.password;
             const email = request.payload.email;
 
-            User.create(username, password, email, (err, user) => {
+            User.create(username, password, email, 'admin', (err, user) => {
 
                 if (err) {
                     return reply(err);
@@ -213,13 +214,11 @@ internals.applyRoutes = function (server, next) {
                 scope: 'admin'
             },
             validate: {
-                params: {
-                    id: Joi.string().invalid('000000000000000000000000')
-                },
                 payload: {
                     isActive: Joi.boolean().required(),
                     username: Joi.string().token().lowercase().required(),
-                    email: Joi.string().email().lowercase().required()
+                    email: Joi.string().email().lowercase().required(),
+                    website: Joi.string().lowercase().required()
                 }
             },
             pre: [
@@ -278,7 +277,8 @@ internals.applyRoutes = function (server, next) {
                 $set: {
                     isActive: request.payload.isActive,
                     username: request.payload.username,
-                    email: request.payload.email
+                    email: request.payload.email,
+                    website: request.payload.website
                 }
             };
 
@@ -304,7 +304,7 @@ internals.applyRoutes = function (server, next) {
         config: {
             auth: {
                 strategy: 'simple',
-                scope: ['admin', 'account']
+                scope: ['account', 'admin']
             },
             validate: {
                 payload: {
@@ -312,54 +312,51 @@ internals.applyRoutes = function (server, next) {
                     email: Joi.string().email().lowercase().required()
                 }
             },
-            pre: [
-                AuthPlugin.preware.ensureNotRoot,
-                {
-                    assign: 'usernameCheck',
-                    method: function (request, reply) {
+            pre: [{
+                assign: 'usernameCheck',
+                method: function (request, reply) {
 
-                        const conditions = {
-                            username: request.payload.username,
-                            _id: { $ne: request.auth.credentials.user._id }
-                        };
+                    const conditions = {
+                        username: request.payload.username,
+                        _id: { $ne: request.auth.credentials.user._id }
+                    };
 
-                        User.findOne(conditions, (err, user) => {
+                    User.findOne(conditions, (err, user) => {
 
-                            if (err) {
-                                return reply(err);
-                            }
+                        if (err) {
+                            return reply(err);
+                        }
 
-                            if (user) {
-                                return reply(Boom.conflict('Username already in use.'));
-                            }
+                        if (user) {
+                            return reply(Boom.conflict('Username already in use.'));
+                        }
 
-                            reply(true);
-                        });
-                    }
-                }, {
-                    assign: 'emailCheck',
-                    method: function (request, reply) {
-
-                        const conditions = {
-                            email: request.payload.email,
-                            _id: { $ne: request.auth.credentials.user._id }
-                        };
-
-                        User.findOne(conditions, (err, user) => {
-
-                            if (err) {
-                                return reply(err);
-                            }
-
-                            if (user) {
-                                return reply(Boom.conflict('Email already in use.'));
-                            }
-
-                            reply(true);
-                        });
-                    }
+                        reply(true);
+                    });
                 }
-            ]
+            }, {
+                assign: 'emailCheck',
+                method: function (request, reply) {
+
+                    const conditions = {
+                        email: request.payload.email,
+                        _id: { $ne: request.auth.credentials.user._id }
+                    };
+
+                    User.findOne(conditions, (err, user) => {
+
+                        if (err) {
+                            return reply(err);
+                        }
+
+                        if (user) {
+                            return reply(Boom.conflict('Email already in use.'));
+                        }
+
+                        reply(true);
+                    });
+                }
+            }]
         },
         handler: function (request, reply) {
 
@@ -395,9 +392,6 @@ internals.applyRoutes = function (server, next) {
                 scope: 'admin'
             },
             validate: {
-                params: {
-                    id: Joi.string().invalid('000000000000000000000000')
-                },
                 payload: {
                     password: Joi.string().required()
                 }
@@ -447,30 +441,49 @@ internals.applyRoutes = function (server, next) {
         config: {
             auth: {
                 strategy: 'simple',
-                scope: ['admin', 'account']
+                scope: ['account', 'admin']
             },
             validate: {
                 payload: {
-                    password: Joi.string().required()
+                    oldPassword:      Joi.string().required(),
+                    newPassword:      Joi.string().required(),
+                    confirmPassword:  Joi.string().required().valid(Joi.ref('newPassword')) 
                 }
             },
-            pre: [
-                AuthPlugin.preware.ensureNotRoot,
-                {
-                    assign: 'password',
-                    method: function (request, reply) {
+            pre: [{
+                assign: 'user',
+                method: function (request, reply) {
 
-                        User.generatePasswordHash(request.payload.password, (err, hash) => {
+                    const username = request.auth.credentials.user.username.toString();
+                    const password = request.payload.oldPassword;
 
-                            if (err) {
-                                return reply(err);
-                            }
+                    User.findByCredentials(username, password, (err, user) => {
 
-                            reply(hash);
-                        });
-                    }
+                        if (err) {
+                            return reply(err);
+                        }
+
+                        if(!user) {
+                            return reply(Boom.badRequest('The old password you entered is incorrect'));
+                        }
+
+                        reply(user);
+                    });
                 }
-            ]
+            }, {
+                assign: 'password',
+                method: function (request, reply) {
+
+                    User.generatePasswordHash(request.payload.newPassword, (err, hash) => {
+
+                        if (err) {
+                            return reply(err);
+                        }
+
+                        reply(hash);
+                    });
+                }
+            }]
         },
         handler: function (request, reply) {
 
@@ -503,11 +516,6 @@ internals.applyRoutes = function (server, next) {
             auth: {
                 strategy: 'simple',
                 scope: 'admin'
-            },
-            validate: {
-                params: {
-                    id: Joi.string().invalid('000000000000000000000000')
-                }
             },
             pre: [
                 AuthPlugin.preware.ensureAdminGroup('root')
