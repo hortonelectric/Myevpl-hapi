@@ -56,7 +56,7 @@ const manifest = {
             plugin: {
                 register: 'hapi-job-queue',
                 options: {
-                    connectionUrl: "mongodb://localhost:27017/mtb",
+                    connectionUrl: "mongodb://localhost:27017/myevpl",
 
                     jobs: [
                       {

@@ -1,8 +1,9 @@
 'use strict';
-const Async = require('async');
+
 const Boom = require('boom');
-const Config = require('../../config');
 const Joi = require('joi');
+const Async = require('async');
+const Config = require('../../config');
 
 
 const internals = {};
@@ -84,13 +85,13 @@ internals.applyRoutes = function (server, next) {
 
                     User.create(username, password, email, done);
                 },
-                account: ['user', function (results, done) {
+                account: ['user', function (done, results) {
 
                     const name = request.payload.name;
 
                     Account.create(name, done);
                 }],
-                linkUser: ['account', function (results, done) {
+                linkUser: ['account', function (done, results) {
 
                     const id = results.account._id.toString();
                     const update = {
@@ -104,7 +105,7 @@ internals.applyRoutes = function (server, next) {
 
                     Account.findByIdAndUpdate(id, update, done);
                 }],
-                linkAccount: ['account', function (results, done) {
+                linkAccount: ['account', function (done, results) {
 
                     const id = results.user._id.toString();
                     const update = {
@@ -120,7 +121,7 @@ internals.applyRoutes = function (server, next) {
 
                     User.findByIdAndUpdate(id, update, done);
                 }],
-                welcome: ['linkUser', 'linkAccount', function (results, done) {
+                welcome: ['linkUser', 'linkAccount', function (done, results) {
 
                     const emailOptions = {
                         subject: 'Your ' + Config.get('/projectName') + ' account',
@@ -140,7 +141,7 @@ internals.applyRoutes = function (server, next) {
 
                     done();
                 }],
-                session: ['linkUser', 'linkAccount', function (results, done) {
+                session: ['linkUser', 'linkAccount', function (done, results) {
 
                     Session.create(results.user._id.toString(), done);
                 }]
@@ -162,7 +163,7 @@ internals.applyRoutes = function (server, next) {
                         roles: user.roles
                     },
                     session: results.session,
-                    authHeader
+                    authHeader: authHeader
                 });
             });
         }

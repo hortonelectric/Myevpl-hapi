@@ -1,41 +1,21 @@
 'use strict';
+
 const Joi = require('joi');
-const MongoModels = require('mongo-models');
-const NoteEntry = require('./note-entry');
+const ObjectAssign = require('object-assign');
+const BaseModel = require('hapi-mongo-models').BaseModel;
 const StatusEntry = require('./status-entry');
+const NoteEntry = require('./note-entry');
 
 
-class Account extends MongoModels {
-    static create(payload, callback) {
+const Account = BaseModel.extend({
+    constructor: function (attrs) {
 
-        const document = {
-            namei   : payload.name,
-            type    : payload.type,
-            details : payload.details,
-            profile : payload.profile,
-            timeCreated: new Date()
-        };
-
-        this.insertOne(document, (err, docs) => {
-
-            if (err) {
-                return callback(err);
-            }
-
-            callback(null, docs[0]);
-        });
+        ObjectAssign(this, attrs);
     }
-
-    static findByUsername(username, callback) {
-
-        const query = { 'user.name': username.toLowerCase() };
-
-        this.findOne(query, callback);
-    }
-}
+});
 
 
-Account.collection = 'accounts';
+Account._collection = 'accounts';
 
 
 Account.schema = Joi.object().keys({
@@ -45,7 +25,6 @@ Account.schema = Joi.object().keys({
         name: Joi.string().lowercase().required()
     }),
     name: Joi.string().required(),
-    type: Joi.string().required(),
     status: Joi.object().keys({
         current: StatusEntry.schema,
         log: Joi.array().items(StatusEntry.schema)
@@ -63,6 +42,35 @@ Account.indexes = [
     { key: { 'user.id': 1 } },
     { key: { 'user.name': 1 } }
 ];
+
+
+Account.create = function (payload, callback) {
+
+    const document = {
+        name: payload.name,
+        email: payload.email,
+        type: payload.type,
+        details: payload.details,
+        profile: payload.profile,
+        timeCreated: new Date()
+    };
+
+    this.insertOne(document, (err, docs) => {
+
+        if (err) {
+            return callback(err);
+        }
+
+        callback(null, docs[0]);
+    });
+};
+
+
+Account.findByUsername = function (username, callback) {
+
+    const query = { 'user.name': username.toLowerCase() };
+    this.findOne(query, callback);
+};
 
 
 module.exports = Account;

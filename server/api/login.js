@@ -1,9 +1,10 @@
 'use strict';
+
+const Boom = require('boom');
+const Joi = require('joi');
 const Async = require('async');
 const Bcrypt = require('bcrypt');
-const Boom = require('boom');
 const Config = require('../../config');
-const Joi = require('joi');
 
 
 const internals = {};
@@ -110,7 +111,7 @@ internals.applyRoutes = function (server, next) {
                     roles: request.pre.user.roles
                 },
                 session: request.pre.session,
-                authHeader
+                authHeader: authHeader
             });
         }
     });
@@ -157,7 +158,7 @@ internals.applyRoutes = function (server, next) {
 
                     Session.generateKeyHash(done);
                 },
-                user: ['keyHash', function (results, done) {
+                user: ['keyHash', function (done, results) {
 
                     const id = request.pre.user._id.toString();
                     const update = {
@@ -171,7 +172,7 @@ internals.applyRoutes = function (server, next) {
 
                     User.findByIdAndUpdate(id, update, done);
                 }],
-                email: ['user', function (results, done) {
+                email: ['user', function (done, results) {
 
                     const emailOptions = {
                         subject: 'Reset your ' + Config.get('/projectName') + ' password',
@@ -240,7 +241,7 @@ internals.applyRoutes = function (server, next) {
                     const token = request.pre.user.resetPassword.token;
                     Bcrypt.compare(key, token, done);
                 },
-                passwordHash: ['keyMatch', function (results, done) {
+                passwordHash: ['keyMatch', function (done, results) {
 
                     if (!results.keyMatch) {
                         return reply(Boom.badRequest('Invalid email or key.'));
@@ -248,7 +249,7 @@ internals.applyRoutes = function (server, next) {
 
                     User.generatePasswordHash(request.payload.password, done);
                 }],
-                user: ['passwordHash', function (results, done) {
+                user: ['passwordHash', function (done, results) {
 
                     const id = request.pre.user._id.toString();
                     const update = {

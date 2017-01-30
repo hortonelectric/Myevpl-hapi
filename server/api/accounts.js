@@ -1,8 +1,9 @@
 'use strict';
-const Async = require('async');
-const AuthPlugin = require('../auth');
+
 const Boom = require('boom');
+const Async = require('async');
 const Joi = require('joi');
+const AuthPlugin = require('../auth');
 
 
 const internals = {};
@@ -19,6 +20,10 @@ internals.applyRoutes = function (server, next) {
         method: 'GET',
         path: '/accounts',
         config: {
+            // auth: {
+            //     strategy: 'simple',
+            //     scope: 'admin'
+            // },
             validate: {
                 query: {
                     fields: Joi.string(),
@@ -51,12 +56,12 @@ internals.applyRoutes = function (server, next) {
     server.route({
         method: 'GET',
         path: '/accounts/{id}',
-        config: {
-            auth: {
-                strategy: 'simple',
-                scope: 'admin'
-            }
-        },
+        // config: {
+        //     auth: {
+        //         strategy: 'simple',
+        //         scope: 'admin'
+        //     }
+        // },
         handler: function (request, reply) {
 
             Account.findById(request.params.id, (err, account) => {
@@ -108,6 +113,17 @@ internals.applyRoutes = function (server, next) {
     server.route({
         method: 'POST',
         path: '/accounts',
+        // config: {
+        //     auth: {
+        //         strategy: 'simple',
+        //         scope: 'admin'
+        //     },
+        //     validate: {
+        //         payload: {
+        //             name: Joi.string().required()
+        //         }
+        //     }
+        // },
         handler: function (request, reply) {
 
             Account.create(request.payload, (err, account) => {
@@ -125,13 +141,26 @@ internals.applyRoutes = function (server, next) {
     server.route({
         method: 'PUT',
         path: '/accounts/{id}',
+        // config: {
+        //     auth: {
+        //         strategy: 'simple',
+        //         scope: 'admin'
+        //     },
+        //     validate: {
+        //         payload: {
+        //             name: Joi.object().keys({
+        //                 first: Joi.string().required(),
+        //                 middle: Joi.string().allow(''),
+        //                 last: Joi.string().required()
+        //             }).required()
+        //         }
+        //     }
+        // },
         handler: function (request, reply) {
 
             const id = request.params.id;
             const update = {
-                $set: {
-                    name: request.payload.name
-                }
+                $set: request.payload
             };
 
             Account.findByIdAndUpdate(id, update, (err, account) => {
@@ -153,28 +182,26 @@ internals.applyRoutes = function (server, next) {
     server.route({
         method: 'PUT',
         path: '/accounts/my',
-        config: {
-            auth: {
-                strategy: 'simple',
-                scope: 'account'
-            },
-            validate: {
-                payload: {
-                    name: Joi.object().keys({
-                        first: Joi.string().required(),
-                        middle: Joi.string().allow(''),
-                        last: Joi.string().required()
-                    }).required()
-                }
-            }
-        },
+        // config: {
+        //     auth: {
+        //         strategy: 'simple',
+        //         scope: 'account'
+        //     },
+        //     validate: {
+        //         payload: {
+        //             name: Joi.object().keys({
+        //                 first: Joi.string().required(),
+        //                 middle: Joi.string().allow(''),
+        //                 last: Joi.string().required()
+        //             }).required()
+        //         }
+        //     }
+        // },
         handler: function (request, reply) {
 
             const id = request.auth.credentials.roles.account._id.toString();
             const update = {
-                $set: {
-                    name: request.payload.name
-                }
+                $set: request.payload
             };
             const findOptions = {
                 fields: Account.fieldsAdapter('user name timeCreated')
@@ -196,10 +223,10 @@ internals.applyRoutes = function (server, next) {
         method: 'PUT',
         path: '/accounts/{id}/user',
         config: {
-            auth: {
-                strategy: 'simple',
-                scope: 'admin'
-            },
+            // auth: {
+            //     strategy: 'simple',
+            //     scope: 'admin'
+            // },
             validate: {
                 payload: {
                     username: Joi.string().lowercase().required()
@@ -307,6 +334,10 @@ internals.applyRoutes = function (server, next) {
         method: 'DELETE',
         path: '/accounts/{id}/user',
         config: {
+            // auth: {
+            //     strategy: 'simple',
+            //     scope: 'admin'
+            // },
             pre: [{
                 assign: 'account',
                 method: function (request, reply) {
@@ -490,6 +521,15 @@ internals.applyRoutes = function (server, next) {
     server.route({
         method: 'DELETE',
         path: '/accounts/{id}',
+        // config: {
+        //     auth: {
+        //         strategy: 'simple',
+        //         scope: 'admin'
+        //     },
+        //     pre: [
+        //         AuthPlugin.preware.ensureAdminGroup('root')
+        //     ]
+        // },
         handler: function (request, reply) {
 
             Account.findByIdAndDelete(request.params.id, (err, account) => {

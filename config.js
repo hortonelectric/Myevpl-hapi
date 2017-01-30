@@ -10,7 +10,7 @@ const criteria = {
 
 const config = {
     $meta: 'This file configures the plot device.',
-    projectName: 'mtb',
+    projectName: 'myevpl',
     port: {
         web: {
             $filter: 'env',
@@ -19,8 +19,8 @@ const config = {
         }
     },
     authAttempts: {
-        forIp: 5000,
-        forIpAndUser: 700
+        forIp: 50,
+        forIpAndUser: 7
     },
     hapiMongoModels: {
         $filter: 'env',
@@ -32,13 +32,13 @@ const config = {
         },
         test: {
             mongodb: {
-                url: 'mongodb://localhost:27017/mtb-test'
+                url: 'mongodb://localhost:27017/myevpl-test'
             },
             autoIndex: true
         },
         $default: {
             mongodb: {
-                url: 'mongodb://localhost:27017/mtb'
+                url: 'mongodb://localhost:27017/myevpl'
             },
             autoIndex: true
         }
@@ -48,18 +48,18 @@ const config = {
         port: 465,
         secure: true,
         auth: {
-            user: 'art@email.com',
+            user: 'root@email.com',
             pass: ''
         }
     },
     system: {
         fromAddress: {
-            name: 'mtb',
-            address: 'art@email.com'
+            name: 'myevpl',
+            address: 'root@email.com'
         },
         toAddress: {
-            name: 'mtb',
-            address: 'art@email.com'
+            name: 'myevpl',
+            address: 'root@email.com'
         }
     }
 };
