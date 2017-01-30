@@ -48,18 +48,18 @@ const config = {
         port: 465,
         secure: true,
         auth: {
-            user: 'root@email.com',
+            user: 'root@admin.com',
             pass: ''
         }
     },
     system: {
         fromAddress: {
             name: 'myevpl',
-            address: 'root@email.com'
+            address: 'root@admin.com'
         },
         toAddress: {
             name: 'myevpl',
-            address: 'root@email.com'
+            address: 'root@admin.com'
         }
     }
 };

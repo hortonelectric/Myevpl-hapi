@@ -10,6 +10,7 @@ Composer((err, server) => {
         throw err;
     }
 
+    server.ext('onPreResponse', corsHeaders);
     server.start(() => {
 
         console.log('Started the plot device on port ' + server.info.port);

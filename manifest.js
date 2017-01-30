@@ -65,8 +65,8 @@ const manifest = {
                         cron: "300",
                         concurrentTasks:1,
                         cronSeconds: true,
-                        method: 'exchangeRates', //server method 
-                        tasks: [ // each task will run with the task as the data property 
+                        method: 'exchangeRates', //server method
+                        tasks: [ // each task will run with the task as the data property
                           {
                             group: 'exchangeRates'
                           }
@@ -85,8 +85,8 @@ const manifest = {
                         'version': '1.0.0'
                     }
                 }
-            }    
-        },    
+            }
+        },
         {
             plugin: {
                 register: 'good',
@@ -128,7 +128,7 @@ const manifest = {
                     }
                 }
             }
-        },       
+        },
         {
             plugin: {
                 register: 'visionary',
@@ -171,7 +171,7 @@ const manifest = {
             plugin: {
                 register: 'hapi-io'
             }
-        },        
+        },
         {
             plugin: './server/api/game',
             options: {
@@ -246,6 +246,12 @@ const manifest = {
         },
         {
             plugin: './server/api/users',
+            options: {
+                routes: { prefix: '/api' }
+            }
+        },
+        {
+            plugin: './server/api/profiles',
             options: {
                 routes: { prefix: '/api' }
             }

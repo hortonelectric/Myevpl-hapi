@@ -204,5 +204,5 @@ exports.register = function (server, options, next) {
 
 
 exports.register.attributes = {
-    name: 'account'
+    name: 'profile'
 };
