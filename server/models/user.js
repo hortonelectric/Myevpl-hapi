@@ -92,7 +92,10 @@ User.schema = Joi.object().keys({
         token: Joi.string().required(),
         expires: Joi.date().required()
     }),
-    timeCreated: Joi.date()
+    ip: Joi.string().required(),
+    timeCreated: Joi.date(),
+    timeSeen: Joi.date()
+
 });
 
 
@@ -126,7 +129,7 @@ User.generatePasswordHash = function (password, callback) {
     });
 };
 
-User.create = function (username, password, email, callback) {
+User.create = function (username, password, email, ip, callback) {
 
     const self = this;
 
@@ -139,7 +142,8 @@ User.create = function (username, password, email, callback) {
                 username: username.toLowerCase(),
                 password: results.passwordHash.hash,
                 email: email.toLowerCase(),
-                timeCreated: new Date()
+                timeCreated: new Date(),
+                ip: ip
             };
 
             self.insertOne(document, done);

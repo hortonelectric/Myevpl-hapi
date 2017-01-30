@@ -49,21 +49,44 @@ Account.create = function (payload, callback) {
     const document = {
         name: payload.name,
         email: payload.email,
-        type: payload.type,
-        details: payload.details,
-        profile: payload.profile,
         timeCreated: new Date()
     };
 
-    this.insertOne(document, (err, docs) => {
 
-        if (err) {
-            return callback(err);
-        }
+    Joi.validate(document, Account.schema, function (errValidate, value) { 
 
-        callback(null, docs[0]);
+        if (errValidate) {
+            console.log(errValidate);
+            return callback(errValidate);
+        }        
+
+        Account.insertOne(document, (err, docs) => {
+            if (err) {
+                console.log(err);
+                return callback(err);
+            }
+            callback(null, docs[0]);
+        });
+
     });
 };
+
+Account.findByIdValidateAndUpdate = function(id,update,reply) {
+
+    Joi.validate(update, Account.schema, function (errValidate, value) { 
+        if (errValidate) {
+            return reply(errValidate);
+        }
+
+        Account.findByIdAndUpdate(id, update, (err, account) => {
+
+          if (err) {
+              return reply(err);
+          }
+          reply(null,account);
+        });
+    });
+}
 
 
 Account.findByUsername = function (username, callback) {

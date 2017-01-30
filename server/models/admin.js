@@ -91,7 +91,8 @@ Admin.schema = Joi.object().keys({
     _id: Joi.object(),
     user: Joi.object().keys({
         id: Joi.string().required(),
-        name: Joi.string().lowercase().required()
+        name: Joi.string().lowercase().required(),
+        email: Joi.string().email().lowercase().required()
     }),
     groups: Joi.object().description('{ groupId: name, ... }'),
     permissions: Joi.object().description('{ permission: boolean, ... }'),

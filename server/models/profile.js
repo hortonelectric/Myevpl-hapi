@@ -16,7 +16,7 @@ Profile._collection = 'profiles';
 
 Profile.schema = Joi.object().keys({
     _id: Joi.object(),
-    accountId: Joi.string().required(),
+    accountId: Joi.object(),
     createdAt: Joi.date(),
     updatedAt: Joi.date(),
     type: Joi.string()

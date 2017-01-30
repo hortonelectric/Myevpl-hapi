@@ -9,7 +9,7 @@ internals.applyRoutes = function (server, next) {
 
   const io = server.plugins['hapi-io'].io;
 
-  
+
   io.sockets.on('connection', function(socket) {
 
     socket.on('disconnect', function() {
@@ -71,7 +71,7 @@ internals.applyRoutes = function (server, next) {
         }
 
         results.user.hydrateRoles(done);
-      }],      
+      }],
       scope: ['user', function (done, results) {
         const ip = request.headers['x-forwarded-for'] || request.info.remoteAddress;
 
@@ -84,7 +84,7 @@ internals.applyRoutes = function (server, next) {
         if(results.user.roles.admin) {
           return done(null, Object.keys(results.user.roles));
         }
-        IpLog.find({ip:ip,userId:{$ne:results.user._id}}, 
+        IpLog.find({ip:ip,userId:{$ne:results.user._id}},
           function(error,usersByIp) {
           var allIps = [];
           var allUsers = [];
@@ -99,19 +99,19 @@ internals.applyRoutes = function (server, next) {
           if(usersByIp.length > 5) {
             console.log("logging in from too many accounts", usersByIp);
 
-            User.updateMany({ip:{$in:allIps}}, 
-            {$set:{isActive:false}}, 
+            User.updateMany({ip:{$in:allIps}},
+            {$set:{isActive:false}},
             function(err,updateResults) {
-  
+
               return done();
-            });              
+            });
           }
 
           IpLog.create({userId:results.user._id.toString(),ip:ip}, function(err,result) {
-            
+
 
             if(err) {
-              console.log("iplog create error",err);  
+              console.log("iplog create error",err);
               return done();
             }
 
@@ -150,7 +150,7 @@ internals.applyRoutes = function (server, next) {
       // Authenticated
 
       return callback(null, { credentials: credentials });
-    });    
+    });
   }
 
 
@@ -167,7 +167,7 @@ internals.applyRoutes = function (server, next) {
      return cb()
     }
     cb(credentials)
-   })   
+   })
   }
   const checkSocket = function(ctx) {
    if(!ctx.res.result || !ctx.res.result.credentials) {
@@ -265,211 +265,42 @@ internals.applyRoutes = function (server, next) {
 
         cb(array);
       }
-    ); 
+    );
 
   };
   const gameLoop = function() {
     if(server.settings.app.loopLock) {
       // if we're already running this loop then do nothing
-      return false;       
+      return false;
     }
     if(server.settings.app.game.paused) {
       return false;
     }
+      return false;
     // tell the app we're running the loop
     server.settings.app.loopRunning = true;
 
     // tell the app not to run this loop twice at the same time
     server.settings.app.loopLock = true;
-    // if there's no round, generate one
-    if (!server.settings.app.round || !server.settings.app.round.status || server.settings.app.round.status === 'finished') {
 
-      Round.create(function() {
-        Round.begin(function(err,newRound) {
-          if(err || !newRound) {
-            console.error("could not create a new round");
-            return false;
-          }
-          server.settings.app.round = newRound||null;
-          console.log('new round created', server.settings.app.round.result);
-          server.settings.app.loopLock = false;
-          // server.settings.app.round.result = 199000;
-          gameLoop();
-        });  
-      });
-      return false;
-    }
-    // take the next step in the current round
-    else if(server.settings.app.round.status === 'working') {
-
-      // if for some reason we are getting blocked to start, 
-      // run the loop again in a sec
-      // right now this is being used to wait for cancelled bets
-      // to process completely before deciding the final order
-      // for bonuses and to prevent any weird race conditions
-      // that could result in an exploit
-      if(server.settings.app.round.blockStart > 0) {
-        server.settings.app.loopLock = false;
-        setTimeout(gameLoop,1000);
-        return false;
-      }
-
-      // reset the game bonuses
-      if(!server.settings.app.round.workingResult) {
-        server.settings.app.round.workingResult = 0; // make sure it's an integer 0
-        calcBonuses();
-      }
-      var looptime = 444;
-      var resultinc = 1; 
-      var maxSpeed = 711;
-      var maxPreNyanFrame = 100000;
-      var checkFrame = server.settings.app.round.workingResult + 100;
-      var defaultresultinc = checkFrame/maxPreNyanFrame * maxSpeed;
-      resultinc = defaultresultinc;
-      
-      const slowdown = function(start,length) {
-        if(checkFrame >= start+length) { return false; }
-        resultinc = defaultresultinc - defaultresultinc * (1-(start+length-checkFrame)/length);
-        // console.log((1-(start+length-checkFrame)/length),start,length,checkFrame,resultinc,defaultresultinc);
-        if(resultinc < 2 && checkFrame > start+length-20) {
-          resultinc = 1;
-          looptime += 44*(checkFrame-(start+length-20));
-          // console.log((checkFrame-(start+length-20)));
-        }
-      };
-      const resetslowdown = function() {
-        looptime = 66;
-        resultinc = defaultresultinc;
-      }
-      var actionMap = {
-        109: function() {
-          looptime = 150;
-        },
-        129: function() {
-          looptime = 99;
-        },
-        159: function() {
-          looptime = 88;
-        },
-        170: function() {
-          slowdown(170,30);
-        },
-        200: function() {
-          resetslowdown();
-        },
-        450: function() {
-          slowdown(450,50);
-        },
-        500: function() {
-          resetslowdown();
-        },
-        800: function() {
-          slowdown(800,200);
-        },
-        999: function() {
-          resetslowdown();
-        },
-        9400: function() {
-          slowdown(9400,600);
-        },
-        9999: function() {
-          resetslowdown();
-        },
-        45000: function() {
-          slowdown(45000,5001);
-        },
-        50000: function() {
-          resetslowdown();
-        },
-        90000: function() {
-          slowdown(90000,10001);
-        },
-        100000: function() {
-          resetslowdown();
-        }
-      }
-      for(var a in actionMap) {
-        if(checkFrame > a) {
-          actionMap[a]();
-        }
-      }
-
-      if(resultinc < 1) { resultinc = 1; }
-
-      // increment the game heartbeat
-      server.settings.app.round.workingResult += resultinc;
-
-      if(server.settings.app.round.workingResult+100 > server.settings.app.round.result) {
-        server.settings.app.round.workingResult = server.settings.app.round.result-100;
-      }      
-
-      server.settings.app.round.resultinc = resultinc;
-
-      server.settings.app.round.looptime = looptime;
-      // if the game is busted, update the database
-      if(server.settings.app.round.result === 0 || server.settings.app.round.workingResult+100 === server.settings.app.round.result) {
-        server.settings.app.round.status = 'finished';
-        socketBroadcast('game-bust',server.settings.app.round.workingResult);
-        server.settings.app.round.workingResult = 0;
-        Round.bust(server.settings.app.round._id,function(err,round) {
-          socketBroadcast('game-history',round);
-          // remove all the bet data from the last round
-          for(var p in server.settings.app.players) {
-            delete server.settings.app.players[p].bonus
-            delete server.settings.app.players[p].profit
-            delete server.settings.app.players[p].stake
-          }          
-        });
-        server.settings.app.loopLock = false;
-        setTimeout(gameLoop,3000); 
-        return false;
-      } else if(server.settings.app.round.workingResult+100 > server.settings.app.round.result) {
-        server.settings.app.round.status = 'error';
-        console.error("stop the game loop, the game messed up, the working result was higher than the actual result. This should never happen.",server.settings.app.round.workingResult,server.settings.app.round.result);
-        socketBroadcast('game-error',{message:"game error"});
-        return false;
-      } else {
-        // socketBroadcast('game-heartbeat', server.settings.app.round.workingResult);
-      }
-      // console.log('loop working',server.settings.app.round.workingResult, server.settings.app.round.result);
-      // wait 30 milliseconds and then go again
-      server.settings.app.loopLock = false;
-
-      // setTimeout(gameLoop,looptime);
-      setTimeout(gameLoop,looptime);    
-    } else if(server.settings.app.round.status === 'began') {
-      server.settings.app.round.workingResult = 0;
-      if(!server.settings.app.round.countdown) {
-        server.settings.app.round.countdown = 5;
-      } else {
-        server.settings.app.round.countdown--;
-      }
-      if(server.settings.app.round.countdown === 0) {
-        server.settings.app.round.status = 'working';
-        socketBroadcast('game-start',{id:server.settings.app.round._id});
-      } else {
-        socketBroadcast('game-countdown',server.settings.app.round.countdown);
-      }
-      // wait 30 milliseconds and then go again
-      server.settings.app.loopLock = false;
-      setTimeout(gameLoop,1000);
-    }
-
+    // wait and then go again
+    server.settings.app.loopLock = false;
+    setTimeout(gameLoop,1000);
 
   };
   server.route({
     method: 'GET',
     path: '/game',
-    config: {   
+    config: {
      plugins: {
-      'hapi-io': { 
+      'hapi-io': {
         event: 'game',
         post: function(ctx,next) {
           if(!checkSocket(ctx)) { return next() }
           const creds = ctx.res.result.credentials
           if(!server.settings.app.players[ctx.socket.id]) {
             server.settings.app.players[ctx.socket.id] = {userId: creds.user._id, username: creds.user.username}
-          } 
+          }
           ctx.io.emit('players-list', server.settings.app.players)
           ctx.socket.emit('user-login', {
             id: creds.user._id,
@@ -488,7 +319,7 @@ internals.applyRoutes = function (server, next) {
         }
       }
      }
-    },   
+    },
     handler: function (request, reply) {
      // trigger the game loop if there isn't one already
      if(!server.settings.app.loopRunning) {
@@ -564,7 +395,7 @@ internals.applyRoutes = function (server, next) {
               satoshiBet: parseInt(ctx.data.amount,10),
               autoCashout: ctx.data.autoCashout || 0
              };
-             
+
              Account.balance(id, -(bet.satoshiBet), function(err,account) {
                if(err || !account) {
                  ctx.socket.emit('bet-error-create',{err:err,data:ctx.data});
@@ -572,7 +403,7 @@ internals.applyRoutes = function (server, next) {
                } else {
                  Bet.create(bet, function(err,newbet) {
                    if(err || !newbet) {
-                     ctx.socket.emit('bet-error',err);                  
+                     ctx.socket.emit('bet-error',err);
                    } else {
                      // let the entire site know a new bet was placed
                      server.settings.app.players[ctx.socket.id].stake = newbet.satoshiBet
@@ -625,7 +456,7 @@ internals.applyRoutes = function (server, next) {
 
 
             const id = ctx.res.result.credentials.roles.account._id.toString();
-            
+
             if(!server.settings.app.round || !server.settings.app.round.status || server.settings.app.round.status === 'finished') {
               ctx.data = {error:"Cannot cash out right now, no active game."};
               ctx.socket.emit('cashout-error',ctx.data);
@@ -664,8 +495,8 @@ internals.applyRoutes = function (server, next) {
                         delete server.settings.app.players[ctx.socket.id].stake
                         delete server.settings.app.players[ctx.socket.id].bonus
                         blockStartDec()
-                        ctx.socket.emit('cashout',{account:account}); 
-                      } 
+                        ctx.socket.emit('cashout',{account:account});
+                      }
                     })
                   }
                 });
@@ -673,12 +504,12 @@ internals.applyRoutes = function (server, next) {
             } else if(server.settings.app.round.workingResult >= 0) {
               Bet.cashout(id, server.settings.app.round._id.toString(), server.settings.app.round.workingResult, function(err,bet) {
                 if(err || !bet) {
-                  ctx.socket.emit('cashout-error',err);                  
-                } else {                  
+                  ctx.socket.emit('cashout-error',err);
+                } else {
                   Account.balance(id, bet.satoshiWon, function(err,account) {
                     if(err || !account) {
                       ctx.socket.emit('cashout-error-winnings',ctx.data);
-                      console.error("error crediting winnings", id,bet);                      
+                      console.error("error crediting winnings", id,bet);
                     } else {
                       // cash them out at the working result
                       ctx.socket.emit('cashout',{bet: bet,account:account});
@@ -687,7 +518,7 @@ internals.applyRoutes = function (server, next) {
                       // delete server.settings.app.players[ctx.socket.id].stake
                     }
                   });
-                }    
+                }
               });
             }
             return next()
@@ -712,7 +543,7 @@ internals.applyRoutes = function (server, next) {
      },
      pre: [
        AuthPlugin.preware.ensureAdminGroup('root')
-     ],      
+     ],
      plugins: {
        'hapi-io': {
          event: 'pause',
@@ -721,7 +552,7 @@ internals.applyRoutes = function (server, next) {
            next();
          }
        }
-     },    
+     },
     },
 
     handler: function (request, reply) {
@@ -740,7 +571,7 @@ internals.applyRoutes = function (server, next) {
      },
      pre: [
        AuthPlugin.preware.ensureAdminGroup('root')
-     ],      
+     ],
      plugins: {
        'hapi-io': {
          event: 'unpause',
@@ -749,16 +580,16 @@ internals.applyRoutes = function (server, next) {
            next();
          }
        }
-     },  
+     },
     },
-     
+
     handler: function (request, reply) {
       server.settings.app.game.paused = false
       gameLoop() // restart the game loop
       reply()
 
     }
-  });   
+  });
   next();
 };
 

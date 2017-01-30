@@ -321,7 +321,8 @@ internals.applyRoutes = function (server, next) {
                         $set: {
                             user: {
                                 id: request.pre.user._id.toString(),
-                                name: request.pre.user.username
+                                name: request.pre.user.username,
+                                email: request.pre.user.email
                             }
                         }
                     };
@@ -468,6 +469,34 @@ internals.applyRoutes = function (server, next) {
                 }
 
                 reply({ message: 'Success.' });
+            });
+        }
+    });
+
+    server.route({
+        method: 'GET',
+        path: '/admins/my',
+        config: {
+            auth: {
+                strategy: 'simple',
+                scope: 'admin'
+            }
+        },
+        handler: function (request, reply) {
+
+            const id = request.auth.credentials.roles.admin._id.toString();
+
+            Admin.findById(id, (err, account) => {
+
+                if (err) {
+                    return reply(err);
+                }
+
+                if (!account) {
+                    return reply(Boom.notFound('Document not found. That is strange.'));
+                }
+
+                reply(account);
             });
         }
     });
