@@ -140,6 +140,7 @@ internals.applyRoutes = function (server, next) {
         },
         handler: function (request, reply) {
 
+            delete request.payload._id;
             const id = request.params.id;
             const update = {
                 $set: request.payload
