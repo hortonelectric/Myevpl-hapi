@@ -472,6 +472,33 @@ internals.applyRoutes = function (server, next) {
         }
     });
 
+    server.route({
+        method: 'GET',
+        path: '/admins/my',
+        config: {
+            auth: {
+                strategy: 'simple',
+                scope: 'admin'
+            }
+        },
+        handler: function (request, reply) {
+
+            const id = request.auth.credentials.roles.admin._id.toString();
+
+            Admin.findById(id, (err, account) => {
+
+                if (err) {
+                    return reply(err);
+                }
+
+                if (!account) {
+                    return reply(Boom.notFound('Document not found. That is strange.'));
+                }
+
+                reply(account);
+            });
+        }
+    });
 
     next();
 };
