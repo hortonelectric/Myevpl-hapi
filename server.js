@@ -1,4 +1,6 @@
 'use strict';
+
+const corsHeaders = require('hapi-cors-headers');
 const Composer = require('./index');
 
 
