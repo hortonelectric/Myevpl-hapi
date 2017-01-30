@@ -12,6 +12,7 @@ const internals = {};
 internals.applyRoutes = function (server, next) {
 
     const Account = server.plugins['hapi-mongo-models'].Account;
+    const Profile = server.plugins['hapi-mongo-models'].Profile;
     const User = server.plugins['hapi-mongo-models'].User;
     const Status = server.plugins['hapi-mongo-models'].Status;
 

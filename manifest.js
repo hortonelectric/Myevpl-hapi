@@ -151,9 +151,7 @@ const manifest = {
                         Session: './server/models/session',
                         Status: './server/models/status',
                         IpLog: './server/models/ipLog',
-                        Round: './server/models/round',
-                        Bet: './server/models/bet',
-                        Transaction: './server/models/transaction',
+                        Profile: './server/models/profile',
                         User: './server/models/user'
                     },
                     autoIndex: Config.get('/hapiMongoModels/autoIndex')
