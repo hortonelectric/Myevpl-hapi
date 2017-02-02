@@ -52,7 +52,7 @@ internals.applyRoutes = function (server, next) {
 
     server.route({
         method: 'GET',
-        path: '/profiles/{id}',
+        path: '/profile/{id}',
         handler: function (request, reply) {
 
             Profile.findById(request.params.id, (err, profile) => {
@@ -73,13 +73,13 @@ internals.applyRoutes = function (server, next) {
 
     server.route({
         method: 'GET',
-        path: '/profiles/my',
-        config: {
-            auth: {
-                strategy: 'simple',
-                scope: 'account'
-            }
-        },
+        path: '/profile/my',
+        // config: {
+        //     auth: {
+        //         strategy: 'simple',
+        //         scope: 'account'
+        //     }
+        // },
         handler: function (request, reply) {
 
             const id = request.auth.credentials.roles.account._id;
@@ -102,21 +102,21 @@ internals.applyRoutes = function (server, next) {
 
     server.route({
         method: 'POST',
-        path: '/profiles',
-        config: {
-            auth: {
-                strategy: 'simple',
-                scope: 'account'
-            },
-            validate: {
-                payload: {
-                    type: Joi.string().required()
-                }
-            }
-        },
+        path: '/profile',
+        // config: {
+        //     auth: {
+        //         strategy: 'simple',
+        //         scope: 'account'
+        //     },
+        //     validate: {
+        //         payload: {
+        //             type: Joi.string().required()
+        //         }
+        //     }
+        // },
         handler: function (request, reply) {
 
-            request.payload.accountId = request.auth.credentials.roles.account._id;
+            // request.payload.accountId = request.auth.credentials.roles.account._id;
             Profile.create(request.payload, (err, account) => {
 
                 if (err) {
@@ -131,13 +131,13 @@ internals.applyRoutes = function (server, next) {
 
     server.route({
         method: 'PUT',
-        path: '/profiles/{id}',
-        config: {
-            auth: {
-                strategy: 'simple',
-                scope: 'account'
-            }
-        },
+        path: '/profile/{id}',
+        // config: {
+        //     auth: {
+        //         strategy: 'simple',
+        //         scope: 'account'
+        //     }
+        // },
         handler: function (request, reply) {
 
             delete request.payload._id;
@@ -166,13 +166,13 @@ internals.applyRoutes = function (server, next) {
 
     server.route({
         method: 'DELETE',
-        path: '/profiles/{id}',
-        config: {
-            auth: {
-                strategy: 'simple',
-                scope: 'account'
-            }
-        },
+        path: '/profile/{id}',
+        // config: {
+        //     auth: {
+        //         strategy: 'simple',
+        //         scope: 'account'
+        //     }
+        // },
         handler: function (request, reply) {
 
             Profile.findByIdAndDelete(request.params.id, (err, account) => {
