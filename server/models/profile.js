@@ -32,27 +32,37 @@ Profile.create = function(document,reply) {
     var self = this;
     document.createdAt = new Date()
     document.updatedAt = new Date()
-    Joi.validate(document, Profile.schema, function (errValidate, value) { 
-        if (errValidate) {
-            return reply(errValidate);
-        }
+    // Joi.validate(document, Profile.schema, function (errValidate, value) {
+    //     if (errValidate) {
+    //         return reply(errValidate);
+    //     }
 
-        Async.auto({
-            clean: function (done, results) {
-                self.deleteOne(document, done);
-            }, newLog: function (done, results) {
-
-                self.insertOne(document, done);
-            }
-        }, (err, results) => {
-
-            if (err) {
-                return callback(err);
-            }
-
-            reply(null, results[0]);
-        });
-    });
+      Profile.insertOne(document, (err, docs) => {
+          if (err) {
+              console.log(err);
+              return reply(err);
+          }
+          reply(null, docs[0]);
+      });
+    // });
 }
+
+Profile.findByIdValidateAndUpdate = function(id,update,reply) {
+
+    // Joi.validate(update, Profile.schema, function (errValidate, value) {
+    //     if (errValidate) {
+    //         return reply(errValidate);
+    //     }
+
+        Profile.findByIdAndUpdate(id, update, (err, profile) => {
+
+          if (err) {
+              return reply(err);
+          }
+          reply(null,profile);
+        });
+    // });
+}
+
 
 module.exports = Profile;
